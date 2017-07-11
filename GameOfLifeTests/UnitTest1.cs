@@ -32,7 +32,22 @@ namespace GameOfLifeTests
         {
             Assert.AreEqual(this._startPosition.right().left(), this._startPosition);
         }
-        
+
+        [TestMethod]
+        public void LeftIsSameAsLeftAndRightIsRight()
+        {
+            Assert.AreEqual(this._startPosition.left(), this._startPosition.left());
+            Assert.AreEqual(this._startPosition.right(), this._startPosition.right());
+        }
+
+        [TestMethod]
+        public void UpDown()
+        {
+            Assert.AreEqual(this._startPosition.up().down(), this._startPosition);
+            Assert.AreEqual(this._startPosition.down().up(), this._startPosition);
+        }
+
+
         [TestInitialize]
         public void SetUp()
         {
@@ -41,24 +56,75 @@ namespace GameOfLifeTests
         }
     }
 
+    class Dimension
+    {
+        public Position _previous;
+        public Position _next;
+
+        public Position previous(Position position)
+        {
+            if (this._previous == null)
+                this._previous = new Position(null, position, null, null);
+            return this.position.X._previous;
+        }
+    }
+
     public class Position
     {
-        private Position position;
-        private Position _right = null;
+        private Dimension x;
+        private Dimension y;
+        private Position _left;
+        private Position _right;
+        private Position _up;
+        private Position _down;
 
-        public Position(Position position)
+
+        public Position(Position right, Position left, Position down, Position up)
         {
-            this._right = position;
+            this.x = new Dimension();
+            this.y = new Dimension();
+            this.x._previous = right;
+            this.x._next = left;
+            this.y._previous = up;
+            this.y._next = down;
+        }
+
+        public Dimension X
+        {
+            set { x = value; }
+            get { return x; }
         }
 
         public Position left()
         {
-            return new Position(this);
+            if (this.x._next == null)
+                this.x._next = new Position(this, null, null, null);
+            return this.x._next;
         }
 
         public Position right()
         {
-            return this._right;
+            return x.previous(this);
+        }
+
+        public Position up()
+        {
+            if (this.y._previous == null)
+            {
+                this.y._previous = new Position(null, null, this, null);
+            }
+
+            return this.y._previous;
+        }
+
+        public Position down()
+        {
+            if (this.y._next == null)
+            {
+                this.y._next = new Position(null, null, null, this);
+            }
+
+            return this.y._next;
         }
     }
 
@@ -66,7 +132,7 @@ namespace GameOfLifeTests
     {
         public Position startPosition()
         {
-            return new Position(null);
+            return new Position(null, null, null, null);
         }
     }
 }
