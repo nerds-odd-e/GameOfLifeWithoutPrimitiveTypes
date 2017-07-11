@@ -47,7 +47,6 @@ namespace GameOfLifeTests
             Assert.AreEqual(this._startPosition.down().up(), this._startPosition);
         }
 
-
         [TestInitialize]
         public void SetUp()
         {
@@ -56,16 +55,14 @@ namespace GameOfLifeTests
         }
     }
 
-    class Dimension
+    internal class Dimension
     {
         public Position _previous;
         public Position _next;
 
-        public Position previous(Position position)
+        public override bool Equals(object obj)
         {
-            if (this._previous == null)
-                this._previous = new Position(null, position, null, null);
-            return this.position.X._previous;
+            return _previous == ((Dimension)obj)._previous && _next == ((Dimension)obj)._next;
         }
     }
 
@@ -78,6 +75,10 @@ namespace GameOfLifeTests
         private Position _up;
         private Position _down;
 
+        public override bool Equals(object obj)
+        {
+            return x.Equals(((Position)obj).x) && y.Equals(((Position)obj).y);
+        }
 
         public Position(Position right, Position left, Position down, Position up)
         {
@@ -89,22 +90,20 @@ namespace GameOfLifeTests
             this.y._next = down;
         }
 
-        public Dimension X
-        {
-            set { x = value; }
-            get { return x; }
-        }
-
         public Position left()
         {
             if (this.x._next == null)
                 this.x._next = new Position(this, null, null, null);
-            return this.x._next;
+            var left_x = this.x._next;
+            return new Position(left_x.x._previous, left_x.x._next, this.y._next, this.y._previous);
         }
 
         public Position right()
         {
-            return x.previous(this);
+            if (this.x._previous == null)
+                this.x._previous = new Position(null, this, null, null);
+            var right_x = this.x._previous;
+            return new Position(right_x.x._previous, right_x.x._next, this.y._next, this.y._previous);
         }
 
         public Position up()
