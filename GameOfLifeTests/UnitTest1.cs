@@ -56,6 +56,39 @@ namespace GameOfLifeTests
             Assert.AreEqual(this._startPosition.downleft().up().right(), this._startPosition);
         }
 
+        [TestMethod]
+        public void shouldBeDeadIfNotSetAlive()
+        {
+            Assert.IsTrue(this._world.isDead(this._startPosition));
+        }
+
+        [TestMethod]
+        public void shouldBeAliveIfSetAlive()
+        {
+            this._world.alive(this._startPosition);
+            this._world.alive(this._startPosition.left());
+            Assert.IsFalse(this._world.isDead(this._startPosition));
+            Assert.IsFalse(this._world.isDead(this._startPosition.left()));
+        }
+
+        
+        [TestMethod]
+        public void AnAlivePositionWithNoAliveNeighbourShouldBeDeadInNextGenerate()
+        {
+            this._world.alive(this._startPosition);
+            Assert.IsTrue(this._world.nextGeneration().isDead(this._startPosition));
+        }
+
+        [TestMethod]
+        public void AnAlivePositionWithTwoAliveNeighboursShouldSurviveInNextGenerate()
+        {
+            this._world.alive(this._startPosition);
+            this._world.alive(this._startPosition.left());
+            this._world.alive(this._startPosition.right());
+            Assert.IsFalse(this._world.nextGeneration().isDead(this._startPosition));
+        }
+
+
         [TestInitialize]
         public void SetUp()
         {
@@ -68,7 +101,7 @@ namespace GameOfLifeTests
     {
         public Dimension _previous;
         public Dimension _next;
- 
+
         public Dimension(Dimension previous, Dimension next)
         {
             this._previous = previous;
@@ -97,10 +130,11 @@ namespace GameOfLifeTests
 
         public override bool Equals(object obj)
         {
+            if (obj == null)
+                return false;
             return x.Equals(((Position)obj).x) && y.Equals(((Position)obj).y);
         }
 
-   
         public Position(Dimension x, Dimension y)
         {
             this.x = x;
@@ -117,7 +151,6 @@ namespace GameOfLifeTests
             return new Position(x.previous(), this.y);
         }
 
- 
         public Position up()
         {
             return new Position(this.x, this.y.previous());
@@ -149,11 +182,48 @@ namespace GameOfLifeTests
         }
     }
 
+    public class PositionList
+    {
+        private Position _p;
+        private PositionList _next;
+        public void add(Position position)
+        {
+            if (this._p != null)
+            {
+                this._next = new PositionList();
+                this._next.add(position);
+            }
+            else
+                this._p = position;
+        }
+        public bool include(Position position)
+        {
+            if (this._p == null) return false;
+            return (this._p.Equals(position) || this._next.include(position));
+        }
+
+    }
     public class World
     {
+        private PositionList lives = new PositionList();
         public Position startPosition()
         {
             return new Position(new Dimension(null, null), new Dimension(null, null));
+        }
+
+        public void alive(Position position)
+        {
+            lives.add(position);
+        }
+
+        public bool isDead(Position position)
+        {
+            return !lives.include(position);
+        }
+
+        public World nextGeneration()
+        {
+            return new World();
         }
     }
 }
