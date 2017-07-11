@@ -47,6 +47,15 @@ namespace GameOfLifeTests
             Assert.AreEqual(this._startPosition.down().up(), this._startPosition);
         }
 
+        [TestMethod]
+        public void UpRight_UpLeft_DownRight_DownLeft()
+        {
+            Assert.AreEqual(this._startPosition.upright().down().left(), this._startPosition);
+            Assert.AreEqual(this._startPosition.upleft().down().right(), this._startPosition);
+            Assert.AreEqual(this._startPosition.downright().up().left(), this._startPosition);
+            Assert.AreEqual(this._startPosition.downleft().up().right(), this._startPosition);
+        }
+
         [TestInitialize]
         public void SetUp()
         {
@@ -55,14 +64,29 @@ namespace GameOfLifeTests
         }
     }
 
-    internal class Dimension
+    public class Dimension
     {
-        public Position _previous;
-        public Position _next;
-
-        public override bool Equals(object obj)
+        public Dimension _previous;
+        public Dimension _next;
+ 
+        public Dimension(Dimension previous, Dimension next)
         {
-            return _previous == ((Dimension)obj)._previous && _next == ((Dimension)obj)._next;
+            this._previous = previous;
+            this._next = next;
+        }
+
+        public Dimension previous()
+        {
+            if (this._previous == null)
+                this._previous = new Dimension(null, this);
+            return this._previous;
+        }
+
+        public Dimension next()
+        {
+            if (this._next == null)
+                this._next = new Dimension(this, null);
+            return this._next;
         }
     }
 
@@ -70,60 +94,58 @@ namespace GameOfLifeTests
     {
         private Dimension x;
         private Dimension y;
-        private Position _left;
-        private Position _right;
-        private Position _up;
-        private Position _down;
 
         public override bool Equals(object obj)
         {
             return x.Equals(((Position)obj).x) && y.Equals(((Position)obj).y);
         }
 
-        public Position(Position right, Position left, Position down, Position up)
+   
+        public Position(Dimension x, Dimension y)
         {
-            this.x = new Dimension();
-            this.y = new Dimension();
-            this.x._previous = right;
-            this.x._next = left;
-            this.y._previous = up;
-            this.y._next = down;
+            this.x = x;
+            this.y = y;
         }
 
         public Position left()
         {
-            if (this.x._next == null)
-                this.x._next = new Position(this, null, null, null);
-            var left_x = this.x._next;
-            return new Position(left_x.x._previous, left_x.x._next, this.y._next, this.y._previous);
+            return new Position(x.next(), this.y);
         }
 
         public Position right()
         {
-            if (this.x._previous == null)
-                this.x._previous = new Position(null, this, null, null);
-            var right_x = this.x._previous;
-            return new Position(right_x.x._previous, right_x.x._next, this.y._next, this.y._previous);
+            return new Position(x.previous(), this.y);
         }
 
+ 
         public Position up()
         {
-            if (this.y._previous == null)
-            {
-                this.y._previous = new Position(null, null, this, null);
-            }
-
-            return this.y._previous;
+            return new Position(this.x, this.y.previous());
         }
 
         public Position down()
         {
-            if (this.y._next == null)
-            {
-                this.y._next = new Position(null, null, null, this);
-            }
+            return new Position(this.x, this.y.next());
+        }
 
-            return this.y._next;
+        public Position upright()
+        {
+            return new Position(this.x.previous(), this.y.previous());
+        }
+
+        public Position upleft()
+        {
+            return new Position(this.x.next(), this.y.previous());
+        }
+
+        public Position downright()
+        {
+            return new Position(this.x.previous(), this.y.next());
+        }
+
+        public Position downleft()
+        {
+            return new Position(this.x.next(), this.y.next());
         }
     }
 
@@ -131,7 +153,7 @@ namespace GameOfLifeTests
     {
         public Position startPosition()
         {
-            return new Position(null, null, null, null);
+            return new Position(new Dimension(null, null), new Dimension(null, null));
         }
     }
 }
